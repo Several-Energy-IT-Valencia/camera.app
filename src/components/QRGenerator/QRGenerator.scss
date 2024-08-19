@@ -1,0 +1,23 @@
+$line-color: #D4D4D4;
+$line-width: 1px;
+
+.black-line {
+  border-top: $line-width solid $line-color;
+  width: 100%;
+}
+
+.line-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qr-generator-container{
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+}
+
+.qr-code-box {
+  margin-top: 1rem;
+}
