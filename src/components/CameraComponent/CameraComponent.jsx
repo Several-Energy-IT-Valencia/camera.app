@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import './CameraComponent.scss'; // Importa el archivo SCSS
 import { IoRadioButtonOn } from 'react-icons/io5';
-import pica from 'pica';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const mountainIcon = (
