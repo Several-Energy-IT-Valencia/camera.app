@@ -5,167 +5,180 @@ $button-color: #fff;
 $button-padding: 12px 24px;
 
 .top-gallery {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 20px;
-	padding-top: 30px;
-	padding-bottom: 30px;
-	background-color: #f4f4f4;
-	position: fixed;
-	top: 0;
-	z-index: 2000;
-	width: 100%;
-	opacity: 0.95;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    background-color: #f4f4f4;
+    position: fixed;
+    top: 0;
+    z-index: 2000;
+    width: 100%;
+    opacity: 0.95;
 }
 
 .div-button {
-	display: flex;
-	justify-content: center;
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
 }
 
 .gallery {
-	display: grid;
-	padding-top: 90px;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 20px;
-	overflow-y: auto;
-	height: calc(100vh - 120px);
-	padding-bottom: 140px;
+    display: grid;
+    padding-top: 90px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    overflow-y: auto;
+    height: calc(100vh - 120px);
+    padding-bottom: 140px;
 }
 
 body {
-	background-color: #e4e1e1;
+    background-color: #e4e1e1;
 }
 
 .imageContainer {
-	position: relative;
-	cursor: pointer;
-	display: inline-block;
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
 
-	img {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+    .overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 
-	&.selected {
-		border: 3px solid blue;
-	}
-}
+        .imageText {
+            font-size: 14px; /* Ajusta el tamaño de fuente según sea necesario */
+            margin-right: auto; /* Empuja el texto hacia la izquierda */
+			background: #ADA4A2; /* Fondo semitransparente */
+			padding-left: 10px;
+			padding-right: 10px;
+			padding: 5px;
+			border-radius: 5px;
+        }
 
-.image {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	transition: transform 0.3s ease;
+        .selected-button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            color: white;
+			background-color: white;
+            padding: 7px;
+            margin-left: auto; /* Empuja el botón hacia la derecha */
+
+            &.active {
+                background-color: rgb(37, 170, 214);
+            }
+        }
+    }
 }
 
 .selected-button {
-	width: 32px;
-	height: 32px;
-	background-color: white; // Fondo semitransparente
-	color: white;
-	border: none;
-	border-radius: 50%;
-	padding: 7px;
-	cursor: pointer;
+    width: 32px;
+    height: 32px;
+    background-color: white; // Fondo semitransparente
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 7px;
+    cursor: pointer;
 
-	&.active {
-		background-color: rgb(37, 170, 214);
-	}
+    &.active {
+        background-color: rgb(37, 170, 214);
+    }
 }
 
 .cancel-gallery {
-	border-radius: 20px;
-	padding: 8px;
-	background-color: #ADA4A2;
-	color: white;
-	border: none;
-	margin-right: 40px;
-	padding-left: 20px;
-	padding-right: 20px;
+    border-radius: 20px;
+    padding: 8px;
+    background-color: #ADA4A2;
+    color: white;
+    border: none;
+    margin-right: 40px;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .cancel-gallery.selecting {
-	background-color: #D9D9D959;
-	color: black;
-	font-size: 12px;
-}
-.imageText {
-    position: absolute;
-    bottom: 10px; /* Ajusta según sea necesario */
-    left: 10px;   /* Ajusta según sea necesario */
-    color: white;
-    background: #ADA4A2; /* Fondo semitransparente para mejorar la legibilidad */
-    padding: 5px;
-	padding-left: 10px;
-	padding-right: 10px;
-    border-radius: 5px;
-    font-size: 14px; /* Ajusta el tamaño de fuente según sea necesario */
+    background-color: #D9D9D959;
+    color: black;
+    font-size: 12px;
 }
 
 .title {
-	font-size: 20px;
-	margin-left: 50px;
+    font-size: 20px;
+    margin-left: 50px;
 }
 
 .allFooter {
-	display: flex;
-	align-items: center;
-	opacity: 0.95;
-	position: fixed;
-	bottom: 70px;
-	left: 0;
-	width: 100%;
-	background-color: #f4f4f4;
-	z-index: 2000;
-	text-align: center;
-	justify-content: center;
-	gap: 30%;
+    display: flex;
+    align-items: center;
+    opacity: 0.95;
+    position: fixed;
+    bottom: 70px;
+    left: 0;
+    width: 100%;
+    background-color: #f4f4f4;
+    z-index: 2000;
+    text-align: center;
+    justify-content: center;
+    gap: 30%;
 
+    svg {
+        cursor: pointer;
+        font-size: 20px;
+        color: #007bff;
+    }
 }
 
 .photosCounter {
-	font-size: 16px;
-	margin-left: 35%;
-}
-
-.allFooter svg {
-	cursor: pointer;
-	font-size: 20px;
-	color: #007bff;
+    font-size: 16px;
+    margin-left: 35%;
 }
 
 .footer-div-button {
-	position: fixed;
-	bottom: 0;
-	width: 100%;
-	background-color: #f4f4f4;
-	z-index: 2000;
-	padding: 10px;
-	text-align: center;
-	opacity: 0.95;
-	padding-top: 20px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #f4f4f4;
+    z-index: 2000;
+    padding: 10px;
+    text-align: center;
+    opacity: 0.95;
+    padding-top: 20px;
 }
 
 .footer-button {
-	padding: 10px 20px;
-	cursor: pointer;
-	width: 60%;
-	border-radius: 20px;
-	background-color: #e6e5e5;
-	color: #b5b5b5;
-	margin-bottom: 20px;
-	border: none;
-	opacity: 1;
+    padding: 10px 20px;
+    cursor: pointer;
+    width: 60%;
+    border-radius: 20px;
+    background-color: #e6e5e5;
+    color: #b5b5b5;
+    margin-bottom: 20px;
+    border: none;
+    opacity: 1;
 
+    &.active {
+        background-color: #454444;
+        color: white;
+    }
 }
 
-.footer-button.active {
-	background-color: #454444;
-	color: white;
-}
