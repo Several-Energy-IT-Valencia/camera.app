@@ -33,33 +33,33 @@ const CameraComponent = () => {
 		const imageSrc = webcamRef.current.getScreenshot();
 		setImages([...images, imageSrc]);
 		setImageCounter(images.length + 1);
-		console.log(processImage(imageSrc));
+		// console.log(processImage(imageSrc));
 	};
 
-    const processImage = async (imgSrc) => {
-        const picaInstance = pica();
+    // const processImage = async (imgSrc) => {
+    //     const picaInstance = pica();
       
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
+    //     const canvas = document.createElement('canvas');
+    //     const context = canvas.getContext('2d');
         
-        const imageElement = document.createElement('img');
-        imageElement.setAttribute('src', `${imgSrc}`)
-        console.log('element',imageElement);
+    //     const imageElement = document.createElement('img');
+    //     imageElement.setAttribute('src', `${imgSrc}`)
+    //     console.log('element',imageElement);
         
 
-        canvas.width = imageElement.width;
-        canvas.height = imageElement.height;
+    //     canvas.width = imageElement.width;
+    //     canvas.height = imageElement.height;
       
-        context.drawImage(imageElement, 0, 0);
+    //     context.drawImage(imageElement, 0, 0);
       
-        const outputCanvas = document.createElement('canvas');
-        outputCanvas.width = 200; // Define el tamaño del recorte
-        outputCanvas.height = 200;
+    //     const outputCanvas = document.createElement('canvas');
+    //     outputCanvas.width = 200; // Define el tamaño del recorte
+    //     outputCanvas.height = 200;
       
-        await picaInstance.resize(canvas, outputCanvas);
+    //     await picaInstance.resize(canvas, outputCanvas);
         
-        return outputCanvas.toDataURL();
-      };
+    //     return outputCanvas.toDataURL();
+    //   };
 
 	return (
 		<div className='container'>

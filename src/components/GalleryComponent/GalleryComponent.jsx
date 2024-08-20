@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './GalleryComponent.scss';
-import { FaArrowLeft } from 'react-icons/fa';
-import { FaRegTrashAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaRegTrashAlt } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const tickButton = (
@@ -14,27 +13,37 @@ const tickButton = (
 const GalleryComponent = () => {
 	const [selectedImages, setSelectedImages] = useState([]);
 	const [isSelecting, setIsSelecting] = useState(false);
-	const [activeStates, setActiveStates] = useState([]);
+	const [images, setImages] = useState([]);
 	const { id } = useParams();
 	const navigate = useNavigate();
 
-	const images = JSON.parse(localStorage.getItem('capturedImages'));
+	useEffect(() => {
+		const storedImages = JSON.parse(localStorage.getItem('capturedImages')) || [];
+		setImages(storedImages);
+	}, []);
 
 	const toggleSelectImage = (index) => {
 		if (selectedImages.includes(index)) {
 			setSelectedImages(selectedImages.filter((i) => i !== index));
-			setActiveStates(activeStates.map((active, i) => (i === index ? false : active)));
 		} else {
 			setSelectedImages([...selectedImages, index]);
-			setActiveStates(activeStates.map((active, i) => (i === index ? true : active)));
 		}
 	};
 
 	const chooseImages = () => {
 		setIsSelecting(!isSelecting);
 	};
+
 	const backToCamera = () => {
 		navigate(`/camera/${id}`);
+	};
+
+	const deleteSelectedImages = () => {
+		const updatedImages = images.filter((_, index) => !selectedImages.includes(index));
+		setImages(updatedImages);
+		localStorage.setItem('capturedImages', JSON.stringify(updatedImages));
+		setSelectedImages([]);
+		setIsSelecting(false);
 	};
 
 	return (
@@ -42,16 +51,14 @@ const GalleryComponent = () => {
 			<div className='top-gallery'>
 				<FaArrowLeft onClick={() => backToCamera()} />
 				<span className='title'>Galería</span>
-				<button className='cancel-gallery' onClick={chooseImages}>
+				<button className={`cancel-gallery ${!isSelecting ? 'selecting' : ''}`} onClick={chooseImages}>
 					{isSelecting ? 'Cancelar' : 'Seleccionar'}
 				</button>
 			</div>
 			<div className='gallery'>
-				{images?.map((image, index) => (
-					<div key={index} className='div-gallery' onClick={() => isSelecting && toggleSelectImage(index)}>
-						<div className={`imageContainer`}>
-							<img src={image} alt={`foto-${index}`} className='image' />
-						</div>
+				{images.map((image, index) => (
+					<div key={index} onClick={() => isSelecting && toggleSelectImage(index)} className='imageContainer'>
+						<img src={image} alt={`foto-${index}`} className='image' />
 						{isSelecting && (
 							<div className='div-button'>
 								<button className={`selected-button ${selectedImages.includes(index) ? 'active' : ''}`}>{tickButton}</button>
@@ -61,18 +68,24 @@ const GalleryComponent = () => {
 				))}
 			</div>
 			{isSelecting && (
-				<>
-					<div className='allFooter'>
-						<div className='footer'>
-							<p>{selectedImages.length} foto seleccionada</p>
-							<FaRegTrashAlt />
-						</div>
-						<div className='footer-div-button'>
-							<button className='footer-button'>Enviar</button>
-						</div>
-					</div>
-				</>
+				<div className='allFooter'>
+					{selectedImages.length > 0 ? (
+						<p>
+							{selectedImages.length} {selectedImages.length === 1 ? 'foto seleccionada' : 'fotos seleccionadas'}
+						</p>
+					) : (
+						<p className='photosCounter'>Seleccionar</p>
+					)}
+					<FaRegTrashAlt onClick={deleteSelectedImages} />
+				</div>
 			)}
+			<div className='footer-div-button'>
+				<button
+					className={`footer-button ${selectedImages.length > 0 ? 'active' : ''}`}
+					disabled={selectedImages.length === 0}>
+					Enviar
+				</button>
+			</div>
 		</>
 	);
 };
