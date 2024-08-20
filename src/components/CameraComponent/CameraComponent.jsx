@@ -41,38 +41,6 @@ const CameraComponent = () => {
 
 	const captureAndProcessImage = () => {
 		const imageSrc = webcamRef.current.getScreenshot();
-<<<<<<< HEAD
-		setImages([...images, imageSrc]);
-		setImageCounter(images.length + 1);
-		// console.log(processImage(imageSrc));
-	};
-
-    // const processImage = async (imgSrc) => {
-    //     const picaInstance = pica();
-      
-    //     const canvas = document.createElement('canvas');
-    //     const context = canvas.getContext('2d');
-        
-    //     const imageElement = document.createElement('img');
-    //     imageElement.setAttribute('src', `${imgSrc}`)
-    //     console.log('element',imageElement);
-        
-
-    //     canvas.width = imageElement.width;
-    //     canvas.height = imageElement.height;
-      
-    //     context.drawImage(imageElement, 0, 0);
-      
-    //     const outputCanvas = document.createElement('canvas');
-    //     outputCanvas.width = 200; // Define el tamaño del recorte
-    //     outputCanvas.height = 200;
-      
-    //     await picaInstance.resize(canvas, outputCanvas);
-        
-    //     return outputCanvas.toDataURL();
-    //   };
-
-=======
 
 		if (imageSrc) {
 			const img = new Image();
@@ -210,7 +178,6 @@ const CameraComponent = () => {
 		}
 	};
 
->>>>>>> jcll
 	return (
 		<div className='container'>
 			<div className='camera-controlls-backgroud-top'></div>
