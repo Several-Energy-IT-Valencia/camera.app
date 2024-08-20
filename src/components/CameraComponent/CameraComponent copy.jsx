@@ -41,128 +41,105 @@ const CameraComponent = () => {
 
 	const captureAndProcessImage = () => {
 		const imageSrc = webcamRef.current.getScreenshot();
-
+	
 		if (imageSrc) {
 			const img = new Image();
 			img.src = imageSrc;
-
+	
 			img.onload = () => {
 				const canvas = canvasRef.current;
 				const ctx = canvas.getContext('2d');
 				canvas.width = img.width;
 				canvas.height = img.height;
 				ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-				// Convertir la imagen del canvas a un Mat de OpenCV
+	
 				const src = cv.imread(canvas);
-				const dst = new cv.Mat();
-
-				// Convertir la imagen a escala de grises
-				cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
-
-				// Aplicar desenfoque gaussiano para reducir el ruido
-				cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0);
-
-				// Aplicar detección de bordes de Canny
-				cv.Canny(dst, dst, 50, 150, 3, false);
-
-				// Encontrar contornos
-				const contours = new cv.MatVector();
-				const hierarchy = new cv.Mat();
-				cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-				console.log('contours', contours);
-
-				let filteredContours = [];
-				for (let i = 0; i < contours.size(); i++) {
-					const contour = contours.get(i);
-					const approx = new cv.Mat();
-					const perimeter = cv.arcLength(contour, true);
-					cv.approxPolyDP(contour, approx, 0.02 * perimeter, true);
-
-					if (approx.rows === 4) {
-						filteredContours.push(contour);
+				const gray = new cv.Mat();
+				const blurred = new cv.Mat();
+				const edges = new cv.Mat();
+				const morphed = new cv.Mat();
+	
+				try {
+					// Convertir a escala de grises
+					cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+	
+					// Aplicar un filtro de mediana para reducir el ruido
+					cv.medianBlur(gray, blurred, 5);
+	
+					// Aplicar umbral adaptativo
+					cv.adaptiveThreshold(
+						blurred,
+						edges,
+						255,
+						cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+						cv.THRESH_BINARY_INV, // Invertir los colores para resaltar los bordes internos
+						11,
+						2
+					);
+	
+					// Aplicar operaciones morfológicas para cerrar brechas
+					const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5));
+					cv.morphologyEx(edges, morphed, cv.MORPH_CLOSE, kernel);
+	
+					// Encontrar contornos
+					const contours = new cv.MatVector();
+					const hierarchy = new cv.Mat();
+					cv.findContours(morphed, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+	
+					// Dibujar todos los contornos encontrados en el canvas
+					for (let i = 0; i < contours.size(); i++) {
+						const color = new cv.Scalar(255, 0, 0); // Color azul para los contornos
+						cv.drawContours(src, contours, i, color, 2, cv.LINE_8, hierarchy, 100);
 					}
-					approx.delete(); // Eliminar `approx` después de usarlo
-				}
-
-				for (let i = 0; i < filteredContours.size(); i++) {
-					const color = new cv.Scalar(255, 0, 0); // Color azul para los contornos
-					cv.drawContours(src, filteredContours, i, color, 2, cv.LINE_8, hierarchy, 100);
-				  }
-				
-				console.log('filtered',filteredContours);
-				let maxArea = 0;
-				let maxContour = null;
-				for (let i = 0; i < contours.size(); i++) {
-					const contour = contours.get(i);
-					const area = cv.contourArea(contour);
-					if (area > maxArea) {
-						maxArea = area;
-						maxContour = contour;
-					}
-				}
-				console.log('maxcontour', maxContour);
-				console.log('maxArea', maxArea);
-				if (maxContour) {
-					console.log('hola');
-					const approx = new cv.Mat();
-					const perimeter = cv.arcLength(maxContour, true);
-					const epsilon = 0.08 * perimeter;
-					cv.approxPolyDP(maxContour, approx, epsilon, true);
-					console.log('aprox', approx);
-					if (approx.rows === 4) {
-						const points = [];
-						for (let i = 0; i < 4; i++) {
-							points.push({ x: approx.data32S[i * 2], y: approx.data32S[i * 2 + 1] });
+	
+					// Mostrar el resultado en el canvas
+					cv.imshow(canvas, src);
+	
+					// Preparar para la detección de un documento (opcional)
+					let maxArea = 0;
+					let maxContour = null;
+					for (let i = 0; i < contours.size(); i++) {
+						const contour = contours.get(i);
+						const area = cv.contourArea(contour);
+						if (area > maxArea) {
+							maxArea = area;
+							maxContour = contour;
 						}
-						console.log('points', points);
+					}					
+	
+					if (maxContour) {
+						const approx = new cv.Mat();
+						const perimeter = cv.arcLength(maxContour, true);
+						cv.approxPolyDP(maxContour, approx, 0.02 * perimeter, true);
+
+						console.log('approx',approx.rows);
 						
-						// Ordenar puntos
-						points.sort((a, b) => a.x - b.x);
-						const topLeft = points[0].y < points[1].y ? points[0] : points[1];
-						const bottomLeft = points[0].y > points[1].y ? points[0] : points[1];
-						const topRight = points[2].y < points[3].y ? points[2] : points[3];
-						const bottomRight = points[2].y > points[3].y ? points[2] : points[3];
-
-						const srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-							topLeft.x,
-							topLeft.y,
-							topRight.x,
-							topRight.y,
-							bottomRight.x,
-							bottomRight.y,
-							bottomLeft.x,
-							bottomLeft.y,
-						]);
-
-						const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, canvas.width - 1, 0, canvas.width - 1, canvas.height - 1, 0, canvas.height - 1]);
-
-						const M = cv.getPerspectiveTransform(srcTri, dstTri);
-						const dst = new cv.Mat();
-						cv.warpPerspective(srcTri, dstTri, M, new cv.Size(canvas.width, canvas.height));
-
-						const croppedImageDataURL = canvas.toDataURL('image/jpeg');
-						setImages([...images, croppedImageDataURL]);
-						M.delete();
-						dst.delete();
-						srcTri.delete();
-						dstTri.delete();
-						console.log('Se detectó un contorno de 4 puntos. Cantidad de puntos:', approx.rows);
-					} else {
-						console.log('No se detectó un contorno de 4 puntos. Cantidad de puntos:', approx.rows);
+	
+						if (approx.rows === 4) {
+							const points = [];
+							for (let i = 0; i < 4; i++) {
+								points.push({ x: approx.data32S[i * 2], y: approx.data32S[i * 2 + 1] });
+							}
+	
+							console.log('Puntos encontrados:', points);
+	
+							// Aquí podrías realizar la transformación de perspectiva si los puntos encontrados son satisfactorios.
+						}
+	
+						approx.delete();
 					}
-					approx.delete();
+	
+					// Liberar la memoria
+					contours.delete();
+					hierarchy.delete();
+				} finally {
+					// Liberar la memoria de los objetos Mat
+					src.delete();
+					gray.delete();
+					blurred.delete();
+					edges.delete();
+					morphed.delete();
 				}
-				contours.delete();
-				hierarchy.delete();
-
-				// Mostrar el resultado en el canvas
-				cv.imshow(canvas, src);
-				// Liberar la memoria
-				src.delete();
-				dst.delete();
-				contours.delete();
-				hierarchy.delete();
 			};
 		}
 	};

@@ -8,6 +8,7 @@ $button-padding: 12px 24px;
 .container {
 	display: flex;
 	flex-direction: column;
+  position: fixed;
 	align-items: center;
 	width: 100vw;
 	height: 100vh;
@@ -22,6 +23,10 @@ $button-padding: 12px 24px;
 	object-fit: cover; // Asegura que la webcam cubra el contenedor sin distorsión
 }
 
+.capture-controlls{
+  display: flex;
+  justify-content: center;
+}
 .captureButton {
 	cursor: pointer;
   position: absolute;

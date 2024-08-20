@@ -14,217 +14,136 @@ const mountainIcon = (
 	</svg>
 );
 
+function getDeviceInfo() {
+	const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  
+	// Detectar iOS
+	const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+  
+	// Detectar Android
+	const isAndroid = /android/i.test(userAgent);
+  
+	// Detectar Safari
+	const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+  
+	// Detectar Chrome
+	const isChrome = /chrome|chromium|crios/i.test(userAgent) && !isSafari;
+  
+	return {
+	  isIOS,
+	  isAndroid,
+	  isSafari,
+	  isChrome,
+	};
+  }
+
 const CameraComponent = () => {
-	const canvasRef = useRef(null);
+	const deviceInfo = getDeviceInfo();
+	
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const webcamRef = useRef(null);
 	const [images, setImages] = useState(JSON.parse(localStorage.getItem('capturedImages')) || []);
+	const [dimensions, setDimensions] = useState({
+		width: window.innerWidth,
+		height: window.innerHeight,
+	});
 	const [imageCounter, setImageCounter] = useState(0);
 
 	console.log('images', images);
+	console.log('dimensions',dimensions);
 
-	const videoConstraints = {
-		facingMode: 'environment',
-	};
+	useEffect(() => {
+		const handleResize = () => {
+			setDimensions({
+				width: window.innerWidth,
+				height: window.innerHeight,
+			});
+		};
+
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
 
 	useEffect(() => {
 		localStorage.setItem('capturedImages', JSON.stringify(images));
 	}, [images]);
 
-	// const capture = () => {
-	// 	const imageSrc = webcamRef.current.getScreenshot();
-	// 	setImages([...images, imageSrc]);
-	// 	setImageCounter(images.length + 1);
-	// 	console.log(processImage(imageSrc));
-	// };
-
-	const captureAndProcessImage = () => {
-		const imageSrc = webcamRef.current.getScreenshot();
-<<<<<<< HEAD
-		setImages([...images, imageSrc]);
-		setImageCounter(images.length + 1);
-		// console.log(processImage(imageSrc));
+	const videoConstraints = {
+		width: dimensions.innerWidth,
+		height: dimensions.innerHeight,
+		facingMode: 'environment',
 	};
 
-    // const processImage = async (imgSrc) => {
-    //     const picaInstance = pica();
-      
-    //     const canvas = document.createElement('canvas');
-    //     const context = canvas.getContext('2d');
-        
-    //     const imageElement = document.createElement('img');
-    //     imageElement.setAttribute('src', `${imgSrc}`)
-    //     console.log('element',imageElement);
-        
+	
 
-    //     canvas.width = imageElement.width;
-    //     canvas.height = imageElement.height;
-      
-    //     context.drawImage(imageElement, 0, 0);
-      
-    //     const outputCanvas = document.createElement('canvas');
-    //     outputCanvas.width = 200; // Define el tamaño del recorte
-    //     outputCanvas.height = 200;
-      
-    //     await picaInstance.resize(canvas, outputCanvas);
-        
-    //     return outputCanvas.toDataURL();
-    //   };
-
-=======
-
-		if (imageSrc) {
-			const img = new Image();
-			img.src = imageSrc;
-
-			img.onload = () => {
-				const canvas = canvasRef.current;
-				console.log('canvas widt', canvas.width);
-
-				const ctx = canvas.getContext('2d');
-				canvas.width = img.width;
-				canvas.height = img.height;
-				ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-				// Convertir la imagen del canvas a un Mat de OpenCV
-				const src = cv.imread(canvas);
-				const dst = new cv.Mat();
-
-				// Convertir la imagen a escala de grises
-				cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
-
-				// Aplicar desenfoque gaussiano para reducir el ruido
-				cv.GaussianBlur(dst, dst, new cv.Size(5, 5), 0);
-
-				// Aplicar detección de bordes de Canny
-				cv.Canny(dst, dst, 50, 150, 3, false);
-
-				// Encontrar contornos
-				const contours = new cv.MatVector();
-				const hierarchy = new cv.Mat();
-				cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-				console.log('contours', contours);
-
-				for (let i = 0; i < contours.size(); i++) {
-					const color = new cv.Scalar(255, 0, 0); // Color azul para los contornos
-					cv.drawContours(src, contours, i, color, 2, cv.LINE_8, hierarchy, 100);
-				}
-
-				let filteredContours = [];
-				for (let i = 0; i < contours.size(); i++) {
-					const contour = contours.get(i);
-					const approx = new cv.Mat();
-					const perimeter = cv.arcLength(contour, true);
-					cv.approxPolyDP(contour, approx, 0.08 * perimeter, true);
-
-					if (approx.rows === 4) {
-						filteredContours.push(contour);
-					}
-					approx.delete(); // Eliminar `approx` después de usarlo
-				}
-
-				console.log('filtered', filteredContours);
-				let maxArea = 0;
-				let maxContour = null;
-				for (let i = 0; i < contours.size(); i++) {
-					const contour = contours.get(i);
-					const area = cv.contourArea(contour);
-					if (area > maxArea) {
-						maxArea = area;
-						maxContour = contour;
-					}
-				}
-				console.log('maxcontour', maxContour);
-				console.log('maxArea', maxArea);
-				if (maxContour) {
-					console.log('hola');
-					const approx = new cv.Mat();
-					const perimeter = cv.arcLength(maxContour, true);
-					const epsilon = 0.08 * perimeter;
-					cv.approxPolyDP(maxContour, approx, epsilon, true);
-					console.log('aprox', approx);
-					if (approx.rows === 4) {
-						const points = [];
-						for (let i = 0; i < 4; i++) {
-							points.push({ x: approx.data32S[i * 2], y: approx.data32S[i * 2 + 1] });
-						}
-						// Ordenar puntos
-						points.sort((a, b) => a.x - b.x);
-						const topLeft = points[0].y < points[1].y ? points[0] : points[1];
-						const bottomLeft = points[0].y > points[1].y ? points[0] : points[1];
-						const topRight = points[2].y < points[3].y ? points[2] : points[3];
-						const bottomRight = points[2].y > points[3].y ? points[2] : points[3];
-
-						const srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
-							topLeft.x,
-							topLeft.y,
-							topRight.x,
-							topRight.y,
-							bottomRight.x,
-							bottomRight.y,
-							bottomLeft.x,
-							bottomLeft.y,
-						]);
-
-						const xMin = Math.min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-						const xMax = Math.max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-						const yMin = Math.min(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-						const yMax = Math.max(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-
-						const width = xMax - xMin;
-						const height = yMax - yMin;
-
-						const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, width, 0, width, height, 0, height]);
-
-						const M = cv.getPerspectiveTransform(srcTri, dstTri);
-						const dst = new cv.Mat();
-						console.log('canvas widt', canvas.width);
-
-						cv.warpPerspective(src, dst, M, new cv.Size(width, height));
-
-						const croppedCanvas = document.createElement('canvas');
-						croppedCanvas.width = width;
-						croppedCanvas.height = height;
-						const croppedCtx = croppedCanvas.getContext('2d');
-						cv.imshow(croppedCanvas, dst);
-
-						const croppedImageDataURL = croppedCanvas.toDataURL('image/jpeg');
-						setImages([...images, croppedImageDataURL]);
-						console.log('Se detectó un contorno de 4 puntos. Cantidad de puntos:', approx.rows);
-
-						M.delete();
-						dst.delete();
-						srcTri.delete();
-						dstTri.delete();
-					} else {
-						console.log('No se detectó un contorno de 4 puntos. Cantidad de puntos:', approx.rows);
-					}
-					approx.delete();
-				}
-				src.delete();
-				dst.delete();
-				contours.delete();
-				hierarchy.delete();
-			};
+	const capture = () => {
+		if (webcamRef.current) {
+		  const video = webcamRef.current.video;
+		  const videoWidth = video.videoWidth;
+		  const videoHeight = video.videoHeight;
+	
+		  // Crear un canvas con las dimensiones del contenedor
+		  const canvas = document.createElement('canvas');
+		  const context = canvas.getContext('2d');
+	
+		  // Configura el canvas para tener el mismo tamaño que el contenedor del video
+		  canvas.width = dimensions.width;
+		  canvas.height = dimensions.height;
+	
+		  // Calcula el recorte necesario para el canvas
+		  const aspectRatio = videoWidth / videoHeight;
+		  const containerAspectRatio = dimensions.width / dimensions.height;
+	
+		  let drawWidth, drawHeight;
+		  let offsetX = 0, offsetY = 0;
+	
+		  if (containerAspectRatio > aspectRatio) {
+			drawWidth = videoWidth;
+			drawHeight = videoWidth / containerAspectRatio;
+			offsetY = (videoHeight - drawHeight) / 2;
+		  } else {
+			drawHeight = videoHeight;
+			drawWidth = videoHeight * containerAspectRatio;
+			offsetX = (videoWidth - drawWidth) / 2;
+		  }
+	
+		  // Dibujar el video en el canvas con el recorte aplicado
+		  context.drawImage(video, offsetX, offsetY, drawWidth, drawHeight, 0, 0, canvas.width, canvas.height);
+	
+		  // Obtener la imagen en base64 del canvas
+		  const imageSrc = canvas.toDataURL('image/jpeg');
+		  setImages([...images, imageSrc]);
+		  setImageCounter(images.length + 1);
 		}
-	};
+	  };
 
->>>>>>> jcll
 	return (
 		<div className='container'>
 			<div className='camera-controlls-backgroud-top'></div>
 			<div className='page-counter'>{`Página ${imageCounter}`}</div>
-			<Webcam audio={false} ref={webcamRef} screenshotFormat='image/jpeg' className='webcam' videoConstraints={videoConstraints} />
+			<div style={{ width: dimensions.width, height: dimensions.height, overflow: 'hidden' }}>
+				<Webcam
+					ref={webcamRef}
+					audio={false}
+					style={{
+						width: '100%',
+						height: '100%',
+						objectFit: 'cover',
+					}}
+					videoConstraints={videoConstraints}
+				/>
+			</div>
 			<div className='camera-controlls-backgroud'></div>
-			<div className='gallery-image' onClick={() => navigate('/gallery/' + id)}>
-				{images.length === 0 ? <div className='icon-div'>{mountainIcon}</div> : <img src={images[images.length - 1]} />}
+			<div className='capture-controlls'>
+				<div className='gallery-image' onClick={() => navigate('/gallery/' + id)}>
+					{images.length === 0 ? <div className='icon-div'>{mountainIcon}</div> : <img src={images[images.length - 1]} />}
+				</div>
+				<div className='captureButton'>
+					<IoRadioButtonOn onClick={capture} />
+				</div>
+				<div className='counter-div'>{imageCounter < 10 ? `0${imageCounter}` : imageCounter}</div>
 			</div>
-			<div className='captureButton'>
-				<IoRadioButtonOn onClick={captureAndProcessImage} />
-			</div>
-			<canvas ref={canvasRef} style={{ marginTop: 10 }} />
-			<div className='counter-div'>{imageCounter < 10 ? `0${imageCounter}` : imageCounter}</div>
 		</div>
 	);
 };
