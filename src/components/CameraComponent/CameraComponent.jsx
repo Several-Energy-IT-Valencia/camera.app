@@ -19,7 +19,12 @@ const CameraComponent = () => {
     const navigate = useNavigate();
 	const webcamRef = useRef(null);
 	const [images, setImages] = useState(JSON.parse(localStorage.getItem('capturedImages')) || []);
-	const [imageCounter, setImageCounter] = useState(0);    
+	const [imageCounter, setImageCounter] = useState(0);
+	const [deviceId, setDeviceId] = useState('');
+
+	const videoConstraints = {
+		facingMode: "environment"
+	  };	
 
 	useEffect(() => {
 		localStorage.setItem('capturedImages', JSON.stringify(images));
@@ -61,7 +66,7 @@ const CameraComponent = () => {
 		<div className='container'>
 			<div className='camera-controlls-backgroud-top'></div>
 			<div className='page-counter'>{`Página ${imageCounter}`}</div>
-			<Webcam audio={false} ref={webcamRef} screenshotFormat='image/jpeg' className='webcam' />
+			<Webcam audio={false} ref={webcamRef} screenshotFormat='image/jpeg' className='webcam' videoConstraints={videoConstraints}/>
 			<div className='camera-controlls-backgroud'></div>
 			<div className='gallery-image' onClick={()=>navigate('/gallery/' + id)}>
 				{images.length === 0 ? <div className='icon-div'>{mountainIcon}</div> : <img src={images[images.length - 1]} />}
