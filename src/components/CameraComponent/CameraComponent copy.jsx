@@ -41,38 +41,6 @@ const CameraComponent = () => {
 
 	const captureAndProcessImage = () => {
 		const imageSrc = webcamRef.current.getScreenshot();
-<<<<<<< HEAD
-		setImages([...images, imageSrc]);
-		setImageCounter(images.length + 1);
-		// console.log(processImage(imageSrc));
-	};
-
-    // const processImage = async (imgSrc) => {
-    //     const picaInstance = pica();
-      
-    //     const canvas = document.createElement('canvas');
-    //     const context = canvas.getContext('2d');
-        
-    //     const imageElement = document.createElement('img');
-    //     imageElement.setAttribute('src', `${imgSrc}`)
-    //     console.log('element',imageElement);
-        
-
-    //     canvas.width = imageElement.width;
-    //     canvas.height = imageElement.height;
-      
-    //     context.drawImage(imageElement, 0, 0);
-      
-    //     const outputCanvas = document.createElement('canvas');
-    //     outputCanvas.width = 200; // Define el tamaño del recorte
-    //     outputCanvas.height = 200;
-      
-    //     await picaInstance.resize(canvas, outputCanvas);
-        
-    //     return outputCanvas.toDataURL();
-    //   };
-
-=======
 
 		if (imageSrc) {
 			const img = new Image();
@@ -80,8 +48,6 @@ const CameraComponent = () => {
 
 			img.onload = () => {
 				const canvas = canvasRef.current;
-				console.log('canvas widt', canvas.width);
-
 				const ctx = canvas.getContext('2d');
 				canvas.width = img.width;
 				canvas.height = img.height;
@@ -106,17 +72,12 @@ const CameraComponent = () => {
 				cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 				console.log('contours', contours);
 
-				for (let i = 0; i < contours.size(); i++) {
-					const color = new cv.Scalar(255, 0, 0); // Color azul para los contornos
-					cv.drawContours(src, contours, i, color, 2, cv.LINE_8, hierarchy, 100);
-				}
-
 				let filteredContours = [];
 				for (let i = 0; i < contours.size(); i++) {
 					const contour = contours.get(i);
 					const approx = new cv.Mat();
 					const perimeter = cv.arcLength(contour, true);
-					cv.approxPolyDP(contour, approx, 0.08 * perimeter, true);
+					cv.approxPolyDP(contour, approx, 0.02 * perimeter, true);
 
 					if (approx.rows === 4) {
 						filteredContours.push(contour);
@@ -124,7 +85,12 @@ const CameraComponent = () => {
 					approx.delete(); // Eliminar `approx` después de usarlo
 				}
 
-				console.log('filtered', filteredContours);
+				for (let i = 0; i < filteredContours.size(); i++) {
+					const color = new cv.Scalar(255, 0, 0); // Color azul para los contornos
+					cv.drawContours(src, filteredContours, i, color, 2, cv.LINE_8, hierarchy, 100);
+				  }
+				
+				console.log('filtered',filteredContours);
 				let maxArea = 0;
 				let maxContour = null;
 				for (let i = 0; i < contours.size(); i++) {
@@ -149,6 +115,8 @@ const CameraComponent = () => {
 						for (let i = 0; i < 4; i++) {
 							points.push({ x: approx.data32S[i * 2], y: approx.data32S[i * 2 + 1] });
 						}
+						console.log('points', points);
+						
 						// Ordenar puntos
 						points.sort((a, b) => a.x - b.x);
 						const topLeft = points[0].y < points[1].y ? points[0] : points[1];
@@ -167,41 +135,30 @@ const CameraComponent = () => {
 							bottomLeft.y,
 						]);
 
-						const xMin = Math.min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-						const xMax = Math.max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-						const yMin = Math.min(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-						const yMax = Math.max(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-
-						const width = xMax - xMin;
-						const height = yMax - yMin;
-
-						const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, width, 0, width, height, 0, height]);
+						const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, canvas.width - 1, 0, canvas.width - 1, canvas.height - 1, 0, canvas.height - 1]);
 
 						const M = cv.getPerspectiveTransform(srcTri, dstTri);
 						const dst = new cv.Mat();
-						console.log('canvas widt', canvas.width);
+						cv.warpPerspective(srcTri, dstTri, M, new cv.Size(canvas.width, canvas.height));
 
-						cv.warpPerspective(src, dst, M, new cv.Size(width, height));
-
-						const croppedCanvas = document.createElement('canvas');
-						croppedCanvas.width = width;
-						croppedCanvas.height = height;
-						const croppedCtx = croppedCanvas.getContext('2d');
-						cv.imshow(croppedCanvas, dst);
-
-						const croppedImageDataURL = croppedCanvas.toDataURL('image/jpeg');
+						const croppedImageDataURL = canvas.toDataURL('image/jpeg');
 						setImages([...images, croppedImageDataURL]);
-						console.log('Se detectó un contorno de 4 puntos. Cantidad de puntos:', approx.rows);
-
 						M.delete();
 						dst.delete();
 						srcTri.delete();
 						dstTri.delete();
+						console.log('Se detectó un contorno de 4 puntos. Cantidad de puntos:', approx.rows);
 					} else {
 						console.log('No se detectó un contorno de 4 puntos. Cantidad de puntos:', approx.rows);
 					}
 					approx.delete();
 				}
+				contours.delete();
+				hierarchy.delete();
+
+				// Mostrar el resultado en el canvas
+				cv.imshow(canvas, src);
+				// Liberar la memoria
 				src.delete();
 				dst.delete();
 				contours.delete();
@@ -210,7 +167,6 @@ const CameraComponent = () => {
 		}
 	};
 
->>>>>>> jcll
 	return (
 		<div className='container'>
 			<div className='camera-controlls-backgroud-top'></div>
