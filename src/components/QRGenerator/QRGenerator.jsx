@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode.react';
 import './QRGenerator.scss';
 
-const url = 'http://192.168.1.156:5173/camera';
+const url = 'https://192.168.1.156:3000/camera';
 
 const QRGenerator = () => {
 	// const { id } = localStorage.getItem('user') || null;
