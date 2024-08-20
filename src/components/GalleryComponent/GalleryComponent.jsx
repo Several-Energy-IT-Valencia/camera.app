@@ -59,12 +59,14 @@ const GalleryComponent = () => {
 				{images.map((image, index) => (
 					<div key={index} onClick={() => isSelecting && toggleSelectImage(index)} className='imageContainer'>
 						<img src={image} alt={`foto-${index}`} className='image' />
+						<span className='imageText'>Página {index + 1}</span>
 						{isSelecting && (
 							<div className='div-button'>
 								<button className={`selected-button ${selectedImages.includes(index) ? 'active' : ''}`}>{tickButton}</button>
 							</div>
 						)}
 					</div>
+
 				))}
 			</div>
 			{isSelecting && (
